@@ -7,17 +7,50 @@
 #include <stdexcept>
 using namespace std;
 
+/**
+ * @brief Constructs a new Player object, assigns it a name, role, and game, and registers it in the game.
+ *        Throws if the game pointer is null. This constructor ensures that every player is always associated
+ *        with a game and is automatically added to the game's player list upon creation.
+ * @param name The name of the player (unique identifier in the game).
+ * @param role The role assigned to the player (Governor, Spy, Baron, etc.).
+ * @param game Pointer to the Game object this player belongs to.
+ * @throws std::invalid_argument if the game pointer is null.
+ */
 Player::Player(const std::string& name, Role role, Game* game)
     : name(name), role(role), coins(0), alive(true), game(game), extraAction(false) {
     if (!game) throw std::invalid_argument("Player must be assigned to a game.");
     game->addPlayer(this);
 }
 
+/**
+ * @brief Gets the name of the player.
+ * @return Reference to the player's name string.
+ */
 const std::string& Player::getName() const { return name; }
+
+/**
+ * @brief Gets the role of the player (Governor, Spy, etc.).
+ * @return The player's role as an enum value.
+ */
 Role Player::getRole() const { return role; }
+
+/**
+ * @brief Gets the current number of coins the player has.
+ * @return The player's coin count.
+ */
 int Player::getCoins() const { return coins; }
+
+/**
+ * @brief Checks if the player is currently alive in the game.
+ * @return True if alive, false if eliminated.
+ */
 bool Player::isAlive() const { return alive; }
 
+/**
+ * @brief Pays 4 coins to bribe and gain an extra action this turn. Only possible if alive, on turn, and has enough coins.
+ *        Marks the bribe in the game so it can be tracked and possibly canceled by a Judge. Throws if not allowed.
+ * @throws std::logic_error if player is dead, not their turn, or not enough coins.
+ */
 void Player::bribe() {
     if (!alive) throw std::logic_error("Dead player cannot bribe.");
     if (!game->isPlayerTurn(this)) throw std::logic_error("Not your turn.");
@@ -29,6 +62,12 @@ void Player::bribe() {
     std::cout << name << " paid 4 coins to bribe and earned an extra action.\n";
 }
 
+/**
+ * @brief Pays 3 coins to sanction another player, preventing them from acting on their next turn. Only possible if both players are alive, on turn, and enough coins.
+ *        If the target is a Judge, 1 coin is added to the bank. Throws if not allowed.
+ * @param target The player to sanction.
+ * @throws std::logic_error if either player is dead, not your turn, or not enough coins.
+ */
 void Player::sanction(Player& target) {
     if (!alive || !target.isAlive()) throw std::logic_error("Both players must be alive");
     if (!game->isPlayerTurn(this)) throw std::logic_error("Not your turn");
@@ -42,6 +81,12 @@ void Player::sanction(Player& target) {
     endTurn();
 }
 
+/**
+ * @brief Performs a coup on another player, eliminating them from the game. Costs 7 coins. Throws if not allowed.
+ *        If the coup is blocked by a General, coins are still lost but the coup fails. Only possible if both players are alive, on turn, and enough coins.
+ * @param target The player to coup.
+ * @throws std::logic_error if self-coup, either player is dead, not your turn, or not enough coins.
+ */
 void Player::coup(Player& target) {
     if (this == &target) throw std::logic_error("Cannot coup yourself");
     if (!alive || !target.isAlive()) throw std::logic_error("Both players must be alive");
@@ -63,6 +108,10 @@ void Player::coup(Player& target) {
     endTurn();
 }
 
+/**
+ * @brief Allows a Baron to invest 3 coins and gain 6 coins in return. Only possible for Barons, on their turn, if alive and enough coins.
+ * @throws std::logic_error if not a Baron, not enough coins, not your turn, or dead.
+ */
 void Player::invest() {
     if (!alive) throw std::logic_error("Dead player cannot invest");
     if (!game->isPlayerTurn(this)) throw std::logic_error("Not your turn");
@@ -73,6 +122,11 @@ void Player::invest() {
     endTurn();
 }
 
+/**
+ * @brief Allows a Spy to spy on another player, revealing their coin count and blocking arrest on them for the next turn. Only possible for Spies, if both players are alive.
+ * @param target The player to spy on.
+ * @throws std::logic_error if not a Spy, either player is dead.
+ */
 void Player::spyOn(Player& target) {
     if (!alive || !target.isAlive()) throw std::logic_error("Both players must be alive");
     if (role != Role::Spy) throw std::logic_error("Only Spy can spy.");
@@ -81,6 +135,11 @@ void Player::spyOn(Player& target) {
     endTurn();
 }
 
+/**
+ * @brief Allows a General to prevent a coup against a target by paying 5 coins. Only possible for Generals, on their turn, if both players are alive, and enough coins.
+ * @param target The player whose coup is being prevented.
+ * @throws std::logic_error if not a General, not your turn, not enough coins, or either player is dead.
+ */
 void Player::preventCoup(Player& target) {
     if (!alive || !target.isAlive()) throw std::logic_error("Both players must be alive.");
     if (role != Role::General) throw std::logic_error("Only General can prevent coup.");
@@ -93,16 +152,27 @@ void Player::preventCoup(Player& target) {
     endTurn();
 }
 
+/**
+ * @brief Removes a specified amount of coins from the player. Throws if not enough coins.
+ * @param amount The number of coins to remove.
+ * @throws std::logic_error if not enough coins.
+ */
 void Player::removeCoins(int amount) {
     if (coins < amount) throw std::logic_error("Not enough coins.");
     coins -= amount;
 }
 
+/**
+ * @brief Eliminates the player from the game, setting their alive status to false.
+ */
 void Player::eliminate() {
     alive = false;
     std::cout << name << " has been eliminated." << std::endl;
 }
 
+/**
+ * @brief Ends the player's turn. If the player has an extra action (from bribe), consumes it instead of ending the turn. Otherwise, advances the game turn.
+ */
 void Player::endTurn() {
     if (extraAction) {
         extraAction = false;
@@ -112,7 +182,11 @@ void Player::endTurn() {
     game->nextTurn();
 }
 
-
+/**
+ * @brief Allows a Judge to cancel a bribe used by another player this turn. Only possible for Judges, if both players are alive, and if the target used a bribe.
+ * @param target The player whose bribe is being canceled.
+ * @throws std::logic_error if not a Judge, either player is dead, or no bribe to cancel.
+ */
 void Player::judgeBribe(Player& target) {
     if (!alive || !target.isAlive())
         throw std::logic_error("Both players must be alive.");
@@ -125,10 +199,18 @@ void Player::judgeBribe(Player& target) {
     std::cout << name << " canceled bribe by " << target.getName() << std::endl;
 }
 
+/**
+ * @brief Clears the player's extra action status (used when a bribe is canceled).
+ */
 void Player::clearExtraAction() {
     extraAction = false;
 }
 
+/**
+ * @brief Allows a General to block a coup attempt against them by paying 5 coins. The attacker is refunded the coup cost. Only possible for Generals, if a coup can be blocked, and enough coins.
+ * @param attacker The player who attempted the coup.
+ * @throws std::logic_error if not a General, no coup to block, or not enough coins.
+ */
 void Player::generalBlockCoup(Player& attacker) {
     if (this->role != Role::General) throw std::logic_error("Only General can block coups.");
     if (!game->canBlockCoup(this)) throw std::logic_error("No coup to block.");
@@ -141,6 +223,9 @@ void Player::generalBlockCoup(Player& attacker) {
     std::cout << name << " blocked the coup by " << attacker.getName() << " and paid 5 coins.\n";
 }
 
+/**
+ * @brief Grants a Merchant a bonus coin if they start their turn with 3 or more coins. Only applies to Merchants.
+ */
 void Player::merchantBonus() {
     if (role != Role::Merchant) return;
     if (coins >= 3) {
@@ -149,6 +234,10 @@ void Player::merchantBonus() {
     }
 }
 
+/**
+ * @brief Allows the player to gather 1 coin. Merchants may receive a bonus. Throws if dead, not your turn, or sanctioned.
+ * @throws std::logic_error if dead, not your turn, or sanctioned.
+ */
 void Player::gather() {
     if (!alive) throw std::logic_error("Dead player cannot gather.");
     if (!game->isPlayerTurn(this)) throw std::logic_error("Not your turn.");
@@ -160,6 +249,10 @@ void Player::gather() {
     endTurn();
 }
 
+/**
+ * @brief Allows the player to tax, gaining 2 coins (or 3 if Governor). Merchants may receive a bonus. Throws if dead, not your turn, or sanctioned.
+ * @throws std::logic_error if dead, not your turn, or sanctioned.
+ */
 void Player::tax() {
     if (!alive) throw std::logic_error("Dead player cannot tax.");
     if (!game->isPlayerTurn(this)) throw std::logic_error("Not your turn.");
@@ -173,6 +266,11 @@ void Player::tax() {
     endTurn();
 }
 
+/**
+ * @brief Allows the player to arrest another player, taking coins from them or causing penalties based on their role. Throws if not allowed.
+ * @param target The player to arrest.
+ * @throws std::logic_error if either player is dead, not your turn, or other arrest rules are violated.
+ */
 void Player::arrest(Player& target) {
     if (!alive || !target.isAlive()) throw logic_error("Both players must be alive.");
     if (!game->isPlayerTurn(this)) throw logic_error("Not your turn.");
@@ -207,7 +305,10 @@ void Player::arrest(Player& target) {
     endTurn();
 }
 
+/**
+ * @brief Adds a specified amount of coins to the player (utility function).
+ * @param amount The number of coins to add.
+ */
 void Player::addCoins(int amount) {
     coins += amount;
 }
-///

@@ -1,13 +1,9 @@
-
-
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <vector>
 #include "Game.hpp"
 #include "Player.hpp"
 #include "Role.hpp"
-
-
 
 int main() {
     Game game;
@@ -20,7 +16,23 @@ int main() {
 
     sf::RenderWindow window(sf::VideoMode(1100, 650), "Coup Game - GUI");
     sf::Font font;
-    if (!font.loadFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")) return 1;
+
+    if (!font.loadFromFile("DejaVuSans-Bold.ttf")) {
+        std::cerr << "❌ Failed to load font 'DejaVuSans-Bold.ttf'!" << std::endl;
+        return 1;
+    }
+
+    // ✅ Load background image
+    sf::Texture backgroundTexture;
+    if (!backgroundTexture.loadFromFile("backpicture.png")) {
+        std::cerr << "❌ Failed to load background image 'backpicture.png'!" << std::endl;
+        return 1;
+    }
+    sf::Sprite backgroundSprite(backgroundTexture);
+    backgroundSprite.setScale(
+        static_cast<float>(window.getSize().x) / backgroundTexture.getSize().x,
+        static_cast<float>(window.getSize().y) / backgroundTexture.getSize().y
+    );
 
     sf::Text turnText("", font, 26); turnText.setPosition(50, 20); turnText.setFillColor(sf::Color::White);
     sf::Text roleText("", font, 20); roleText.setPosition(50, 55); roleText.setFillColor(sf::Color::Yellow);
@@ -40,6 +52,7 @@ int main() {
     sf::Text sanctionText("Sanction", font, 24), investText("Invest (Baron)", font, 20), spyText("Spy (Spy only)", font, 20);
     gatherText.setPosition(90, 150); taxText.setPosition(90, 220); bribeText.setPosition(90, 290); coupText.setPosition(90, 360);
     sanctionText.setPosition(80, 430); investText.setPosition(60, 500); spyText.setPosition(70, 570);
+
     for (auto* t : {&gatherText, &taxText, &bribeText, &coupText, &sanctionText, &investText, &spyText})
         t->setFillColor(sf::Color::White);
 
@@ -142,7 +155,7 @@ int main() {
             }
         }
 
-        window.clear(sf::Color(30, 30, 30));
+        window.clear();
         Player* current = nullptr;
         if (!gameOver) {
             try { winnerName = game.winner(); gameOver = true; }
@@ -150,13 +163,13 @@ int main() {
         }
 
         if (gameOver) {
+            window.draw(backgroundSprite);
             sf::Text winText("🏆 Winner: " + winnerName + " 🏆", font, 36);
             winText.setFillColor(sf::Color::Cyan);
             winText.setPosition(250, 250);
             window.draw(winText);
         } else {
-            turnText.setString("Turn: " + current->getName() + " (" + std::to_string(current->getCoins()) + " coins)");
-            roleText.setString("Your Role: " + roleToString(current->getRole()));
+            window.draw(backgroundSprite); //  Draw background
             window.draw(turnText);
             window.draw(roleText);
             window.draw(resultText);
@@ -195,4 +208,4 @@ int main() {
 
     return 0;
 }
-///
+//
