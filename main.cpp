@@ -4,7 +4,7 @@
 #include "Role.hpp"
 
 int main() {
-    Game game;
+    Game game; // Assumes you have defined a default constructor for Game, or do so in Game.hpp/cpp
 
     // Players: Avichay is Governor, Hadar is Spy, Dani is Baron
     Player avichay("Avichay", Role::Governor, &game);
@@ -26,9 +26,13 @@ int main() {
     std::cout << "\nTurn: " << game.turn() << std::endl;
     try {
         dani.arrest(hadar);
+        return 0;
     } catch (const std::exception& e) {
         std::cout << "Caught expected arrest block error: " << e.what() << std::endl;
     }
+
+    // Advance turn after failed arrest attempt
+    game.nextTurn();
 
     // Still Turn 3: Dani adds coins and sanctions Avichay
     dani.addCoins(3);
@@ -61,4 +65,3 @@ int main() {
 
     return 0;
 }
-///

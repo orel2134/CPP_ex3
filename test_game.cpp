@@ -145,7 +145,6 @@ TEST_CASE("Attempting illegal actions") {
     for (int i = 0; i < 7; ++i) { p1.gather(); p2.gather(); }
     CHECK_THROWS(p1.coup(p1));
 }
-///////////////////////////
 
 /**
  * @brief Tests that bribe throws if the player does not have enough coins.
@@ -160,7 +159,6 @@ TEST_CASE("Bribe without enough coins throws") {
     CHECK_THROWS(p.bribe());
 }
 
-///////////////////2
 /**
  * @brief Tests that coup on a dead player throws an exception.
  */
@@ -174,7 +172,6 @@ TEST_CASE("Coup on dead player throws") {
     CHECK_FALSE(b.isAlive());
     CHECK_THROWS(a.coup(b));  // Already dead
 }
-////////////////////3
 
 /**
  * @brief Tests that General cannot preventCoup if it is not their turn.

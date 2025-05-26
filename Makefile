@@ -14,7 +14,7 @@
 # 4. To run the GUI version:
 #    make Main
 #
-# 5. To check for memory leaks with valgrind (Linux/Mac only):
+# 5. To check for memory leaks with valgrind :
 #    make valgrind
 #
 # 6. To clean all build artifacts:
@@ -40,7 +40,9 @@ Main: game_gui
 	./game_gui.exe
 
 test: test_game
-	./test_game.exe
+	@if command -v winpty >/dev/null 2>&1; then winpty ./test_game.exe; \
+	elif [ -f ./test_game.exe ]; then ./test_game.exe; \
+	else ./test_game; fi
 
 valgrind: test_game
 	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./test_game.exe

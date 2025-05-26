@@ -221,4 +221,10 @@ public:
      * @return True if the arrest occurred last turn, false otherwise.
      */
     bool wasArrestedByMeLastTurn(Player* source, Player* target) const;
+
+    // Rule of Three
+    Game();
+    ~Game();
+    Game(const Game& other);
+    Game& operator=(const Game& other);
 };

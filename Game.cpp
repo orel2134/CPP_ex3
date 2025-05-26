@@ -3,6 +3,11 @@
 #include <stdexcept>
 #include <algorithm>
 
+Game::Game() = default;
+Game::~Game() = default;
+Game::Game(const Game& other) = default;
+Game& Game::operator=(const Game& other) = default;
+
 /**
  * @brief Adds a player to the game.
  * @param p Pointer to the player to add.
