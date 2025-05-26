@@ -1,3 +1,23 @@
+/*
+ * main_gui.cpp
+ * -----------------------------------------------------------------------------
+ * Graphical User Interface for the Coup Game using SFML
+ * -----------------------------------------------------------------------------
+ * This file implements a simple GUI for the Coup game, allowing players to
+ * interact with the game logic visually. The interface displays player info,
+ * available actions, and handles user input for all main game mechanics.
+ *
+ * Features:
+ * - Displays player list, coins, and current turn
+ * - Allows actions: Gather, Tax, Bribe, Coup, Sanction, Invest (Baron), Spy (Spy)
+ * - Handles target selection for actions that require it
+ * - Shows game result and error messages
+ * - Uses SFML for rendering and event handling
+ *
+ * Author: [Your Name]
+ * Date: [Today's Date]
+ * -----------------------------------------------------------------------------
+ */
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <vector>
@@ -18,14 +38,14 @@ int main() {
     sf::Font font;
 
     if (!font.loadFromFile("DejaVuSans-Bold.ttf")) {
-        std::cerr << "❌ Failed to load font 'DejaVuSans-Bold.ttf'!" << std::endl;
+        std::cerr << " Failed to load font 'DejaVuSans-Bold.ttf'!" << std::endl;
         return 1;
     }
 
-    // ✅ Load background image
+    //  Load background image
     sf::Texture backgroundTexture;
     if (!backgroundTexture.loadFromFile("backpicture.png")) {
-        std::cerr << "❌ Failed to load background image 'backpicture.png'!" << std::endl;
+        std::cerr << " Failed to load background image 'backpicture.png'!" << std::endl;
         return 1;
     }
     sf::Sprite backgroundSprite(backgroundTexture);
@@ -33,6 +53,9 @@ int main() {
         static_cast<float>(window.getSize().x) / backgroundTexture.getSize().x,
         static_cast<float>(window.getSize().y) / backgroundTexture.getSize().y
     );
+    // Make background brighter by drawing a semi-transparent white rectangle over it
+    sf::RectangleShape brightOverlay(sf::Vector2f(window.getSize().x, window.getSize().y));
+    brightOverlay.setFillColor(sf::Color(255, 255, 255, 80)); // 80/255 alpha for brightness
 
     sf::Text turnText("", font, 26); turnText.setPosition(50, 20); turnText.setFillColor(sf::Color::White);
     sf::Text roleText("", font, 20); roleText.setPosition(50, 55); roleText.setFillColor(sf::Color::Yellow);
@@ -61,6 +84,39 @@ int main() {
     bool choosingTarget = false, choosingSanction = false, choosingSpy = false;
     bool gameOver = false, mustCoup = false;
     std::string winnerName = "";
+
+    // --- Professional color palette for Coup-like game ---
+    sf::Color bgOverlayColor(255, 255, 255, 60); // Slightly brighter, but less white
+    sf::Color mainBtnColor(60, 60, 120);        // Deep blue for main actions
+    sf::Color taxBtnColor(180, 140, 40);        // Gold for tax
+    sf::Color bribeBtnColor(120, 60, 20);       // Brown for bribe
+    sf::Color coupBtnColor(180, 30, 30);        // Red for coup
+    sf::Color sanctionBtnColor(90, 0, 90);      // Purple for sanction
+    sf::Color investBtnColor(30, 120, 60);      // Green for invest
+    sf::Color spyBtnColor(40, 40, 40);          // Dark gray for spy
+    sf::Color textColor(230, 230, 230);         // Light gray for text
+    sf::Color highlightColor(255, 215, 0);      // Gold for highlights
+    sf::Color winnerColor(0, 180, 60);          // Green for winner
+    sf::Color playerListBg(30, 30, 30, 200);    // Semi-transparent dark for player list
+
+    // Update overlay for background
+    brightOverlay.setFillColor(bgOverlayColor);
+
+    // --- Button colors ---
+    gatherBtn.setFillColor(mainBtnColor);
+    taxBtn.setFillColor(taxBtnColor);
+    bribeBtn.setFillColor(bribeBtnColor);
+    coupBtn.setFillColor(coupBtnColor);
+    sanctionBtn.setFillColor(sanctionBtnColor);
+    investBtn.setFillColor(investBtnColor);
+    spyBtn.setFillColor(spyBtnColor);
+
+    // --- Text colors ---
+    turnText.setFillColor(highlightColor);
+    roleText.setFillColor(textColor);
+    resultText.setFillColor(sf::Color::Green);
+    for (auto* t : {&gatherText, &taxText, &bribeText, &coupText, &sanctionText, &investText, &spyText})
+        t->setFillColor(textColor);
 
     while (window.isOpen()) {
         sf::Event event;
@@ -164,12 +220,20 @@ int main() {
 
         if (gameOver) {
             window.draw(backgroundSprite);
-            sf::Text winText("🏆 Winner: " + winnerName + " 🏆", font, 36);
-            winText.setFillColor(sf::Color::Cyan);
-            winText.setPosition(250, 250);
+            window.draw(brightOverlay); // Draw overlay to brighten background
+            sf::Text winText("Winner: " + winnerName, font, 54); // Larger font size
+            winText.setFillColor(winnerColor); // Professional green for winner
+            winText.setOutlineColor(highlightColor);
+            winText.setOutlineThickness(4);
+            // Center horizontally, move higher vertically
+            sf::FloatRect textRect = winText.getLocalBounds();
+            float x = (window.getSize().x - textRect.width) / 2.f;
+            float y = 80; // Higher up
+            winText.setPosition(x, y);
             window.draw(winText);
         } else {
-            window.draw(backgroundSprite); //  Draw background
+            window.draw(backgroundSprite);
+            window.draw(brightOverlay);
             window.draw(turnText);
             window.draw(roleText);
             window.draw(resultText);
@@ -189,16 +253,22 @@ int main() {
                 window.draw(targetTexts[i]);
             }
 
+            // Player list background
+            sf::RectangleShape playerListRect(sf::Vector2f(230, 300));
+            playerListRect.setPosition(840, 20);
+            playerListRect.setFillColor(playerListBg);
+            window.draw(playerListRect);
+
             sf::Text playerListTitle("Players:", font, 20);
             playerListTitle.setPosition(850, 30);
-            playerListTitle.setFillColor(sf::Color::White);
+            playerListTitle.setFillColor(highlightColor);
             window.draw(playerListTitle);
 
             int py = 60;
             for (Player* p : players) {
                 if (!p->isAlive()) continue;
                 sf::Text pText(p->getName() + " - " + std::to_string(p->getCoins()) + " coins", font, 18);
-                pText.setPosition(850, py); pText.setFillColor(sf::Color::White);
+                pText.setPosition(850, py); pText.setFillColor(textColor);
                 window.draw(pText); py += 30;
             }
         }
@@ -208,4 +278,3 @@ int main() {
 
     return 0;
 }
-//

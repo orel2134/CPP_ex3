@@ -55,17 +55,17 @@ std::vector<std::string> Game::playersNames() const {
  */
 void Game::nextTurn() {
     if (players.empty()) return;
+    // advance to next alive player
     do {
         currentTurnIndex = (currentTurnIndex + 1) % players.size();
     } while (!players[currentTurnIndex]->isAlive());
-
-    Player* current = players[currentTurnIndex];
-
-    sanctions.erase(current);
-    arrestBlocks.erase(current);
-    coupBlocks.erase(current);
+    Player* next = players[currentTurnIndex];
+    sanctions.erase(next);
+    arrestBlocks.erase(next);
+    coupBlocks.erase(next);
     clearCoupMarks();
-    bribeLog.erase(current);  // clear bribe logs at new turn
+    bribeLog.erase(next);  // clear bribe logs at new turn (now for next player)
+    taxLog.erase(next);    // clear tax logs at new turn (now for next player)
 }
 
 /**
@@ -274,4 +274,34 @@ void Game::markArrest(Player* from, Player* target) {
 bool Game::wasArrestedByMeLastTurn(Player* source, Player* target) const {
     auto it = arrestLog.find(source);
     return it != arrestLog.end() && it->second == target;
+}
+
+/**
+ * @brief Marks that a player has used a tax this turn.
+ * @param p Pointer to the player.
+ */
+void Game::markTax(Player* p) {
+    taxLog[p] = currentTurnIndex;
+}
+
+/**
+ * @brief Checks if a player has used a tax this turn.
+ * @param p Pointer to the player.
+ * @return True if tax was used this turn, false otherwise.
+ */
+bool Game::wasTaxUsedBy(Player* p) const {
+    return taxLog.find(p) != taxLog.end();
+}
+
+/**
+ * @brief Cancels a player's tax and removes the coins gained for the turn.
+ * @param p Pointer to the player.
+ */
+void Game::cancelTax(Player* p) {
+    // Remove the coins gained from tax this turn
+    // Assumes only one tax per turn
+    if (!wasTaxUsedBy(p)) return;
+    int amount = (p->getRole() == Role::Governor) ? 3 : 2;
+    p->removeCoins(amount);
+    taxLog.erase(p);
 }

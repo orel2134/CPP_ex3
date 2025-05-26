@@ -13,6 +13,9 @@ private:
     Game* game;
     bool extraAction;
 
+    enum class PendingAction { None, Tax, Bribe };
+    PendingAction pendingAction = PendingAction::None;
+
 public:
     /**
      * @brief Constructs a new Player object, assigns a name, role, and game, and registers the player in the game.
@@ -141,6 +144,21 @@ public:
      * @brief Grants a Merchant a bonus coin if they start their turn with 3 or more coins. Only applies to Merchants.
      */
     void merchantBonus();                     // Merchant gains bonus if 3+ coins
+    /**
+     * @brief Allows a Governor to block a tax action performed by another player this turn. Only possible for Governors, if both players are alive, and if the target used tax this turn.
+     * @param target The player whose tax is being blocked.
+     * @throws std::logic_error if not a Governor, either player is dead, or no tax to block.
+     */
+    void blockTax(Player& target);
+    /**
+     * @brief Skips the player's turn. This can be used in soft lock situations or when a player needs to forfeit their turn without taking any actions.
+     *        The exact implementation depends on the game rules, but it generally prevents the player from acting until their next normal turn.
+     */
+    void skipTurn();
+
+    void resetPendingAction() { pendingAction = PendingAction::None; }
+    PendingAction getPendingAction() const { return pendingAction; }
+    void setPendingAction(PendingAction act) { pendingAction = act; }
 
 ////
 };
