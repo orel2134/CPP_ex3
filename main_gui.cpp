@@ -14,8 +14,6 @@
  * - Shows game result and error messages
  * - Uses SFML for rendering and event handling
  *
- * Author: [Your Name]
- * Date: [Today's Date]
  * -----------------------------------------------------------------------------
  */
 #include <SFML/Graphics.hpp>
@@ -31,7 +29,7 @@ int main() {
     players.push_back(new Player("Orel", Role::Governor, &game));
     players.push_back(new Player("Avi", Role::Spy, &game));
     players.push_back(new Player("Alon", Role::General, &game));
-    players.push_back(new Player("Maayan", Role::Merchant, &game));
+    players.push_back(new Player("Shachar", Role::Merchant, &game));
     players.push_back(new Player("Avicii", Role::Merchant, &game));
 
     sf::RenderWindow window(sf::VideoMode(1100, 650), "Coup Game - GUI");
@@ -113,16 +111,55 @@ int main() {
 
     // --- Text colors ---
     turnText.setFillColor(highlightColor);
+    turnText.setOutlineColor(sf::Color::Black);
+    turnText.setOutlineThickness(2);
     roleText.setFillColor(textColor);
     resultText.setFillColor(sf::Color::Green);
     for (auto* t : {&gatherText, &taxText, &bribeText, &coupText, &sanctionText, &investText, &spyText})
         t->setFillColor(textColor);
 
+    // --- Restart button ---
+    sf::Text restartText("Restart Game", font, 32);
+    restartText.setFillColor(sf::Color(60, 60, 0));
+    // Center the text inside the button
+    sf::FloatRect rt = restartText.getLocalBounds();
+    float restartBtnWidth = rt.width + 40;
+    float restartBtnHeight = rt.height + 28;
+    float restartBtnX = (window.getSize().x - restartBtnWidth) / 2.f;
+    float restartBtnY = 400;
+    sf::RectangleShape restartBtn(sf::Vector2f(restartBtnWidth, restartBtnHeight));
+    restartBtn.setPosition(restartBtnX, restartBtnY);
+    restartBtn.setFillColor(sf::Color(255, 230, 80));
+    restartBtn.setOutlineColor(sf::Color(180, 150, 0));
+    restartBtn.setOutlineThickness(3);
+    restartText.setPosition(restartBtnX + (restartBtnWidth - rt.width) / 2.f - rt.left,
+                           restartBtnY + (restartBtnHeight - rt.height) / 2.f - rt.top);
+
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) window.close();
-            if (gameOver) continue;
+            if (gameOver) {
+                if (event.type == sf::Event::MouseButtonPressed) {
+                    sf::Vector2f mouse(sf::Mouse::getPosition(window));
+                    if (restartBtn.getGlobalBounds().contains(mouse)) {
+                        // Reset game state
+                        for (Player* p : players) delete p;
+                        players.clear();
+                        game = Game();
+                        players.push_back(new Player("Orel", Role::Governor, &game));
+                        players.push_back(new Player("Avi", Role::Spy, &game));
+                        players.push_back(new Player("Alon", Role::General, &game));
+                        players.push_back(new Player("Shachar", Role::Merchant, &game));
+                        players.push_back(new Player("Avicii", Role::Merchant, &game));
+                        winnerName = "";
+                        gameOver = false;
+                        mustCoup = false;
+                        continue;
+                    }
+                }
+                continue;
+            }
 
             Player* current = game.currentPlayer();
             mustCoup = current->getCoins() >= 10;
@@ -231,6 +268,9 @@ int main() {
             float y = 80; // Higher up
             winText.setPosition(x, y);
             window.draw(winText);
+            // Draw restart button
+            window.draw(restartBtn);
+            window.draw(restartText);
         } else {
             window.draw(backgroundSprite);
             window.draw(brightOverlay);
@@ -269,6 +309,16 @@ int main() {
                 if (!p->isAlive()) continue;
                 sf::Text pText(p->getName() + " - " + std::to_string(p->getCoins()) + " coins", font, 18);
                 pText.setPosition(850, py); pText.setFillColor(textColor);
+                // Highlight current player's name with yellow background
+                if (!gameOver && p == current) {
+                    sf::RectangleShape nameBg(sf::Vector2f(220, 28));
+                    nameBg.setPosition(845, py - 2);
+                    nameBg.setFillColor(sf::Color(255, 255, 120, 220)); // Soft yellow
+                    nameBg.setOutlineColor(sf::Color(200, 180, 0));
+                    nameBg.setOutlineThickness(2);
+                    window.draw(nameBg);
+                    pText.setFillColor(sf::Color(60, 60, 0)); // Darker text for contrast
+                }
                 window.draw(pText); py += 30;
             }
         }

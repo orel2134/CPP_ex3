@@ -1,4 +1,4 @@
-// Player.cpp – כולל Baron, Spy, General
+// Player.cpp –  include Baron, Spy, General
 
 #include "Player.hpp"
 #include "Game.hpp"
@@ -143,7 +143,7 @@ void Player::spyOn(Player& target) {
 
     std::cout << name << " spies on " << target.getName() << ": " << target.getCoins() << " coins." << std::endl;
     game->blockArrest(&target);
-    // אין קריאת endTurn() כאן, כדי לאפשר פעולה זו גם לא בתור השחקן
+    
 }
 
 /**
