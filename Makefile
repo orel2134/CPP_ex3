@@ -11,8 +11,8 @@
 # 3. To run all tests:
 #    make test
 #
-# 4. To run the GUI version:
-#    make Main
+# 4. To run the GUI version (build and run in one step):
+#    make gui
 #
 # 5. To check for memory leaks with valgrind :
 #    make valgrind
@@ -20,32 +20,57 @@
 # 6. To clean all build artifacts:
 #    make clean
 
+SRC_DIR := src
+INC_DIR := include
+ASSETS_DIR := assets
+TESTS_DIR := tests
+BUILD_DIR := build
 
-CXX = g++
-CXXFLAGS = -std=c++17
-LDFLAGS = -lsfml-graphics -lsfml-window -lsfml-system
+SRCS := $(wildcard $(SRC_DIR)/*.cpp)
+HDRS := $(wildcard $(INC_DIR)/*.hpp)
 
-SRC = Game.cpp Player.cpp Role.cpp
-HEADERS = Game.hpp Player.hpp Role.hpp doctest.h
+MAIN_SRC := $(SRC_DIR)/main.cpp
+GUI_SRC := $(SRC_DIR)/main_gui.cpp
 
-all: test_game game_gui
+TEST_SRC := $(TESTS_DIR)/test_game.cpp
 
-test_game: test_game.cpp $(SRC) $(HEADERS)
-	$(CXX) test_game.cpp $(SRC) -o test_game $(CXXFLAGS)
+MAIN_EXE := $(BUILD_DIR)/main.exe
+GUI_EXE := $(BUILD_DIR)/game_gui.exe
+TEST_EXE := $(BUILD_DIR)/test_game.exe
 
-game_gui: main_gui.cpp $(SRC) $(HEADERS)
-	$(CXX) main_gui.cpp $(SRC) -o game_gui $(CXXFLAGS) $(LDFLAGS)
+CXX := g++
+CXXFLAGS := -std=c++17 -I$(INC_DIR) -I$(TESTS_DIR) -Wall -Wextra -g
+LDFLAGS := -lsfml-graphics -lsfml-window -lsfml-system
 
-Main: game_gui
-	./game_gui.exe
+# קבצי מקור ללא main.cpp ו-main_gui.cpp
+SRCS_NO_MAIN := $(filter-out $(SRC_DIR)/main.cpp $(SRC_DIR)/main_gui.cpp, $(SRCS))
 
-test: test_game
-	@if command -v winpty >/dev/null 2>&1; then winpty ./test_game.exe; \
-	elif [ -f ./test_game.exe ]; then ./test_game.exe; \
+all: $(MAIN_EXE) $(GUI_EXE)
+
+# בניית main.exe רק עם main.cpp
+$(MAIN_EXE): $(SRCS_NO_MAIN) $(SRC_DIR)/main.cpp
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+# בניית game_gui.exe רק עם main_gui.cpp
+$(GUI_EXE): $(SRCS_NO_MAIN) $(SRC_DIR)/main_gui.cpp
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+
+# בניית test_game.exe
+$(TEST_EXE): $(SRCS_NO_MAIN) $(TEST_SRC)
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+test: $(TEST_EXE)
+	@if command -v winpty >/dev/null 2>&1; then winpty $(TEST_EXE); \
+	elif [ -f $(TEST_EXE) ]; then $(TEST_EXE); \
 	else ./test_game; fi
 
-valgrind: test_game
-	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./test_game.exe
+# בניית והרצת הגרסה הגרפית (GUI) בפעולה אחת
+.PHONY: gui
+
+gui: $(GUI_EXE)
+	./$(GUI_EXE)
 
 clean:
-	rm -f test_game game_gui
+	rm -f $(BUILD_DIR)/*.exe
+
+.PHONY: all test clean
