@@ -71,3 +71,4 @@ void Spy::blockTax(Player& target) { throw std::logic_error("Spy cannot blockTax
  * @brief Skip turn.
  */
 void Spy::skipTurn() { Player::skipTurn(); }
+//

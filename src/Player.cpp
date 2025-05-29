@@ -73,6 +73,7 @@ void Player::bribe() {
  * @throws std::logic_error if either player is dead, not your turn, or not enough coins.
  */
 void Player::sanction(Player& target) {
+    if (this == &target) throw std::logic_error("Cannot sanction yourself");
     if (!alive || !target.isAlive()) throw std::logic_error("Both players must be alive");
     if (!game->isPlayerTurn(this)) throw std::logic_error("Not your turn");
     if (coins < 3) throw std::logic_error("Not enough coins to sanction");

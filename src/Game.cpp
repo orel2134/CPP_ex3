@@ -60,12 +60,15 @@ std::vector<std::string> Game::playersNames() const {
  */
 void Game::nextTurn() {
     if (players.empty()) return;
+    // Remember the player whose turn just ended
+    Player* prev = players[currentTurnIndex];
     // advance to next alive player
     do {
         currentTurnIndex = (currentTurnIndex + 1) % players.size();
     } while (!players[currentTurnIndex]->isAlive());
+    // Clear sanction for the player who just finished their turn
+    sanctions.erase(prev);
     Player* next = players[currentTurnIndex];
-    sanctions.erase(next);
     arrestBlocks.erase(next);
     coupBlocks.erase(next);
     clearCoupMarks();
@@ -309,4 +312,4 @@ void Game::cancelTax(Player* p) {
     int amount = (p->getRole() == Role::Governor) ? 3 : 2;
     p->removeCoins(amount);
     taxLog.erase(p);
-}
+}//

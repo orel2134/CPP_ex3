@@ -37,3 +37,4 @@ void Governor::generalBlockCoup(Player& attacker) { throw std::logic_error("Gove
 void Governor::blockTax(Player& target) { Player::blockTax(target); }
 // Skip turn
 void Governor::skipTurn() { Player::skipTurn(); }
+//

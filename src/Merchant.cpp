@@ -80,3 +80,4 @@ void Merchant::blockTax(Player& target) { throw std::logic_error("Merchant canno
  * @brief Skip turn.
  */
 void Merchant::skipTurn() { Player::skipTurn(); }
+//

@@ -177,35 +177,8 @@ TEST_CASE("Coup on dead player throws") {
     CHECK_THROWS(a.coup(b));  // Already dead
 }
 
-/**
- * @brief Tests that General cannot preventCoup if it is not their turn.
- */
-// TEST_CASE("General preventCoup not on turn") {
-//     Game g;
-//     Player gen("Gen", Role::General, &g);
-//     Player other("Other", Role::Spy, &g);
-//
-//     gen.gather();
-//     other.gather(); // now gen's turn is over
-//     CHECK_THROWS(gen.preventCoup(gen));
-// }
-//////////////////////4
-/**
- * @brief Tests that Spy can block arrest after spying on a player.
- */
-// TEST_CASE("Spy blocks arrest after spying") {
-//     Game g;
-//     Player spy("Spy", Role::Spy, &g);
-//     Player gov("Gov", Role::Governor, &g);
-//
-//     spy.gather();
-//     gov.gather();
-//     spy.spyOn(gov);  // Activates protection
-//     spy.endTurn();   // Ends spy turn
-//
-//     CHECK_THROWS(gov.arrest(spy));  // Should be blocked
-// }
-////////////////5
+
+
 /**
  * @brief Tests that sanction on a dead player throws an exception.
  */
@@ -217,10 +190,10 @@ TEST_CASE("Sanction on dead player throws") {
     for (int i = 0; i < 7; ++i) { gov.gather(); target.gather(); }
     gov.coup(target);
 
-    CHECK_THROWS(gov.sanction(target)); // סנקציה על מת?
+    CHECK_THROWS(gov.sanction(target)); // Sanction on dead?
 }
 
-////////////////11
+
 /**
  * @brief Tests that two Judges can cancel each other's bribe.
  */
@@ -237,7 +210,7 @@ TEST_CASE("Judge cancels each other's bribe") {
     CHECK(j1.getCoins() == 0);
 }
 
-//////////////////////////12
+
 /**
  * @brief Tests that a dead player cannot perform any actions.
  */
@@ -254,8 +227,6 @@ TEST_CASE("Dead player cannot act") {
     CHECK_THROWS(victim.bribe());
 }
 
-///////////////13
-
 /**
  * @brief Tests that Merchant receives a bonus coin repeatedly when starting turn with 3+ coins.
  */
@@ -268,7 +239,7 @@ TEST_CASE("Merchant bonus triggers repeatedly") {
         m.gather(); d.gather();
     }
 
-    CHECK(m.getCoins() > 10); // כולל בונוסים
+    CHECK(m.getCoins() > 10); 
 }
 
 /**
@@ -349,9 +320,97 @@ TEST_CASE("Player can skip turn in soft lock") {
     Game g;
     Governor a("A", &g);
     Spy b("B", &g);
-    // a עושה חרם על b, b לא יכול לבצע gather/tax
+    // a boycotts b, b cannot perform gather/tax
     for (int i = 0; i < 3; ++i) { a.gather(); b.gather(); }
     a.sanction(b);
-    // b לא יכול לעשות gather/tax, אין לו מספיק מטבעות ל-coup/bribe/sanction/arrest
+    // b cannot do gather/tax, and does not have enough coins for coup/bribe/sanction/arrest
     CHECK_NOTHROW(b.skipTurn());
 }
+
+/**
+ * @brief Tests that a player cannot act if it is not their turn.
+ */
+TEST_CASE("Player cannot act out of turn") {
+    Game g;
+    Governor a("A", &g);
+    Spy b("B", &g);
+    // It's A's turn
+    CHECK_THROWS(b.gather());
+    CHECK_THROWS(b.tax());
+    CHECK_THROWS(b.bribe());
+}
+
+/**
+ * @brief Tests that a player cannot coup themselves.
+ */
+TEST_CASE("Player cannot coup themselves") {
+    Game g;
+    Governor a("A", &g);
+    for (int i = 0; i < 7; ++i) a.gather();
+    CHECK_THROWS(a.coup(a));
+}
+
+/**
+ * @brief Tests that a player cannot bribe twice in the same turn.
+ */
+TEST_CASE("Player cannot bribe twice in the same turn") {
+    Game g;
+    Merchant m("M", &g);
+    Spy s("S", &g);
+    for (int i = 0; i < 8; ++i) { m.gather(); s.gather(); }
+    m.bribe();
+    CHECK_THROWS(m.bribe());
+}
+
+/**
+ * @brief Tests that a player cannot gather if sanctioned.
+ */
+TEST_CASE("Player cannot gather if sanctioned") {
+    Game g;
+    Governor a("A", &g);
+    Spy b("B", &g);
+    for (int i = 0; i < 3; ++i) { a.gather(); b.gather(); }
+    a.sanction(b);
+    // Advance turn to b
+    while (g.currentPlayer()->getName() != b.getName()) {
+        g.currentPlayer()->gather();
+    }
+    // Now it's b's turn and he is sanctioned
+    CHECK_THROWS(b.gather());
+}
+
+/**
+ * @brief Tests that a player cannot arrest the same player twice in a row.
+ */
+TEST_CASE("Player cannot arrest same player twice in a row") {
+    Game g;
+    Governor a("A", &g);
+    Spy b("B", &g);
+    for (int i = 0; i < 2; ++i) { a.gather(); b.gather(); }
+    a.arrest(b);
+    b.gather(); a.gather(); // Advance turn so it's a's turn again
+    CHECK_THROWS(a.arrest(b));
+}
+
+/**
+ * @brief Tests that a player cannot act with 0 coins for actions that require coins.
+ */
+TEST_CASE("Cannot bribe, coup, or sanction with 0 coins") {
+    Game g;
+    Governor a("A", &g);
+    Spy b("B", &g);
+    CHECK_THROWS(a.bribe());
+    CHECK_THROWS(a.coup(b));
+    CHECK_THROWS(a.sanction(b));
+}
+
+/**
+ * @brief Tests that a player cannot sanction themselves.
+ */
+TEST_CASE("Cannot sanction self") {
+    Game g;
+    Governor a("A", &g);
+    for (int i = 0; i < 3; ++i) a.gather();
+    CHECK_THROWS(a.sanction(a));
+}
+

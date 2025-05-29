@@ -35,3 +35,4 @@ void Judge::generalBlockCoup(Player& attacker) { throw std::logic_error("Judge c
 void Judge::blockTax(Player& target) { throw std::logic_error("Judge cannot blockTax"); }
 // Skip turn
 void Judge::skipTurn() { Player::skipTurn(); }
+//
