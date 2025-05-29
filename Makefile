@@ -33,10 +33,12 @@ MAIN_SRC := $(SRC_DIR)/main.cpp
 GUI_SRC := $(SRC_DIR)/main_gui.cpp
 
 TEST_SRC := $(TESTS_DIR)/test_game.cpp
+TEST_ROLES_SRC := $(TESTS_DIR)/test_roles.cpp
 
 MAIN_EXE := $(BUILD_DIR)/main.exe
 GUI_EXE := $(BUILD_DIR)/game_gui.exe
 TEST_EXE := $(BUILD_DIR)/test_game.exe
+TEST_ROLES_EXE := $(BUILD_DIR)/test_roles.exe
 
 CXX := g++
 CXXFLAGS := -std=c++17 -I$(INC_DIR) -I$(TESTS_DIR) -Wall -Wextra -g
@@ -59,10 +61,19 @@ $(GUI_EXE): $(SRCS_NO_MAIN) $(SRC_DIR)/main_gui.cpp
 $(TEST_EXE): $(SRCS_NO_MAIN) $(TEST_SRC)
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
+# בניית test_roles.exe
+$(TEST_ROLES_EXE): $(SRCS_NO_MAIN) $(TEST_ROLES_SRC)
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
 test: $(TEST_EXE)
 	@if command -v winpty >/dev/null 2>&1; then winpty $(TEST_EXE); \
 	elif [ -f $(TEST_EXE) ]; then $(TEST_EXE); \
 	else ./test_game; fi
+
+test_roles: $(TEST_ROLES_EXE)
+	@if command -v winpty >/dev/null 2>&1; then winpty $(TEST_ROLES_EXE); \
+	elif [ -f $(TEST_ROLES_EXE) ]; then $(TEST_ROLES_EXE); \
+	else ./test_roles.exe; fi
 
 # בניית והרצת הגרסה הגרפית (GUI) בפעולה אחת
 .PHONY: gui
