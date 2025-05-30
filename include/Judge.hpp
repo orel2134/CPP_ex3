@@ -1,3 +1,7 @@
+// orel2744@gmail.com
+// The Judge class represents a player who can cancel bribes and receives coins when sanctioned.
+// Has all standard actions and unique bribe-blocking abilities.
+
 #pragma once
 #include "Player.hpp"
 
@@ -20,5 +24,4 @@ public:
     void blockTax(Player& target) override;
     void skipTurn() override;
 };
-
 //
