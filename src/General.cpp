@@ -1,3 +1,4 @@
+// orel2744@gmail.com
 // General.cpp - Implementation of the General class (Coup role: General)
 #include "General.hpp"
 #include "Game.hpp"
@@ -72,4 +73,3 @@ void General::blockTax(Player& target) { throw std::logic_error("General cannot 
  * @brief Skip turn.
  */
 void General::skipTurn() { Player::skipTurn(); }
-//
