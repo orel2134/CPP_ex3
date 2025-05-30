@@ -1,9 +1,18 @@
+// orel2744@gmail.com
 #include "Game.hpp"
 #include "Player.hpp"
+#include "Governor.hpp"
+#include "Spy.hpp"
+#include "Baron.hpp"
+#include "General.hpp"
+#include "Judge.hpp"
+#include "Merchant.hpp"
 #include <stdexcept>
 #include <algorithm>
+#include <random>
+#include <ctime>
 
-Game::Game() = default;
+Game::Game() : bank(50) {}
 Game::~Game() = default;
 Game::Game(const Game& other) = default;
 Game& Game::operator=(const Game& other) = default;
@@ -83,7 +92,20 @@ void Game::nextTurn() {
  */
 void Game::eliminate(Player* p) {
     if (!p || !p->isAlive()) throw std::logic_error("Cannot eliminate.");
+    // If the eliminated player is the current player, advance the turn
+    if (currentPlayer() == p) {
+        nextTurn();
+    }
     p->eliminate();
+    // Remove from all logs and blocks
+    sanctions.erase(p);
+    arrestBlocks.erase(p);
+    coupBlocks.erase(p);
+    recentCoupTargets.erase(p);
+    attemptedCoup.erase(p);
+    arrestLog.erase(p);
+    taxLog.erase(p);
+    bribeLog.erase(p);
 }
 
 /**
@@ -312,4 +334,37 @@ void Game::cancelTax(Player* p) {
     int amount = (p->getRole() == Role::Governor) ? 3 : 2;
     p->removeCoins(amount);
     taxLog.erase(p);
-}//
+}
+
+/**
+ * @brief Gets a random role for player assignment.
+ * @return A randomly selected Role.
+ */
+Role Game::getRandomRole() {
+    static std::vector<Role> roles = {
+        Role::Governor, Role::Spy, Role::Baron, Role::General, Role::Judge, Role::Merchant
+    };
+    static std::mt19937 rng(static_cast<unsigned int>(std::time(nullptr)));
+    std::uniform_int_distribution<size_t> dist(0, roles.size() - 1);
+    return roles[dist(rng)];
+}
+
+/**
+ * @brief Creates a player with the specified role.
+ * @param name The name of the player.
+ * @param game Pointer to the game instance.
+ * @param role The role to assign to the player.
+ * @return Pointer to the newly created Player.
+ * @throws std::invalid_argument if the role is unknown.
+ */
+Player* Game::createPlayerWithRole(const std::string& name, Game* game, Role role) {
+    switch (role) {
+        case Role::Governor: return new Governor(name, game);
+        case Role::Spy:      return new Spy(name, game);
+        case Role::Baron:    return new Baron(name, game);
+        case Role::General:  return new General(name, game);
+        case Role::Judge:    return new Judge(name, game);
+        case Role::Merchant: return new Merchant(name, game);
+        default: throw std::invalid_argument("Unknown role for player creation");
+    }
+}
