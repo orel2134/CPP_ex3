@@ -1,3 +1,4 @@
+// orel2744@gmail.com
 // Spy.cpp - Implementation of the Spy class (Coup role: Spy)
 #include <stdexcept>
 #include "Spy.hpp"
@@ -71,4 +72,3 @@ void Spy::blockTax(Player& target) { throw std::logic_error("Spy cannot blockTax
  * @brief Skip turn.
  */
 void Spy::skipTurn() { Player::skipTurn(); }
-//
