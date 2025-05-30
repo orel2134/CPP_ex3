@@ -1,3 +1,7 @@
+// orel2744@gmail.com
+// The Baron class represents a player with the unique ability to invest coins for profit.
+// Can perform all standard actions and has a special invest action to gain extra coins.
+
 #pragma once
 #include "Player.hpp"
 
