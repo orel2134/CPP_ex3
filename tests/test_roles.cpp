@@ -42,13 +42,12 @@ void cycleToPlayer(Game& g, Player& p) {
 
 TEST_CASE("Baron invest action") {
     Game g;
-    Baron baron("Baron", &g);
-    Merchant m("M", &g);
-    // Fill the turn order: baron, m
-    cycleToPlayer(g, baron);
-    baron.addCoins(3);
-    baron.invest();
-    CHECK(baron.getCoins() == 6);
+    std::unique_ptr<Player> baron(Game::createPlayerWithRole("Baron", &g, Role::Baron));
+    std::unique_ptr<Player> m(Game::createPlayerWithRole("M", &g, Role::Merchant));
+    cycleToPlayer(g, *baron);
+    baron->addCoins(3);
+    baron->invest();
+    CHECK(baron->getCoins() == 6);
 }
 
 // --- FIX: General blocks coup ---
