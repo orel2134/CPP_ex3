@@ -1,6 +1,6 @@
 # Coup Game - C++ Implementation
 
-## Assignment-Specific Features (2025 Version)
+## Assignment
 This implementation fully matches the advanced assignment requirements:
 
 - **Random Role Assignment:** At game start, each player is assigned a random role (Governor, Spy, Baron, General, Judge, Merchant). Duplicates are allowed.
