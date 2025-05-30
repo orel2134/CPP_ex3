@@ -1,3 +1,10 @@
+/**
+ * @file test_game.cpp
+ * @brief Unit tests for the Coup game logic, covering all player actions, roles, and edge cases.
+ * This file is intended to be run together with test_roles.cpp for full test coverage.
+ * To run all tests, use: make test
+ */
+
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 #include "Game.hpp"
