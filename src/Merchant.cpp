@@ -1,3 +1,4 @@
+// orel2744@gmail.com
 // Merchant.cpp - Implementation of the Merchant class (Coup role: Merchant)
 #include <iostream>
 #include <stdexcept>
@@ -80,4 +81,3 @@ void Merchant::blockTax(Player& target) { throw std::logic_error("Merchant canno
  * @brief Skip turn.
  */
 void Merchant::skipTurn() { Player::skipTurn(); }
-//
