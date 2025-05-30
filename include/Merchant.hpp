@@ -1,3 +1,7 @@
+// orel2744@gmail.com
+// The Merchant class represents a player who receives bonus coins when starting their turn with 3 or more coins.
+// Has all standard actions and a unique merchantBonus ability.
+
 #pragma once
 #include "Player.hpp"
 
