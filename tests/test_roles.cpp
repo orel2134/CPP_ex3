@@ -78,7 +78,7 @@ TEST_CASE("Governor tax gives 3 coins") {
 }
 
 // --- FIX: Judge cancels bribe (active bribe) ---
-// השופט חייב לבטל את השוחד מיד אחרי ש-briber עשה bribe ולפני שהוא מסיים תור
+// The judge must cancel the bribe right after the briber does bribe and before he ends his turn
 TEST_CASE("Judge cancels bribe (active bribe)") {
     Game g;
     Judge judge("Judge", &g);
@@ -89,7 +89,7 @@ TEST_CASE("Judge cancels bribe (active bribe)") {
     cycleToPlayer(g, briber);
     briber.addCoins(4);
     briber.bribe();
-    // השופט מבטל את השוחד לפני ש-briber מסיים תור
+    // The judge cancels the bribe before the briber ends his turn
     judge.judgeBribe(briber);
     CHECK(briber.getCoins() == 0);
 }
@@ -225,7 +225,7 @@ TEST_CASE("Spy cannot block arrest if not spied") {
 }
 
 // --- FIX: Baron can invest every turn (if allowed) ---
-// אם מותר להשקיע שוב אחרי סבב, נבדוק את כמות המטבעות
+// If Baron is allowed to invest again after a round, check the coin count
 TEST_CASE("Baron can invest every turn (if allowed)") {
     Game g;
     Baron baron("Baron", &g);
@@ -245,5 +245,5 @@ TEST_CASE("Baron can invest every turn (if allowed)") {
     m.endTurn();
     cycleToPlayer(g, baron);
     baron.invest();
-    CHECK(baron.getCoins() >= 0); // רק בדיקה שהפעולה לא זורקת חריג
+    CHECK(baron.getCoins() >= 0); // Only check that the action does not throw an exception
 }
