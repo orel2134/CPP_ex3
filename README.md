@@ -33,8 +33,7 @@ make
 
 ### Run Main Game (Console)
 ```bash
-make main
-./build/main.exe
+make make_main
 ```
 
 ### Run GUI Version
@@ -52,6 +51,64 @@ make test
 make test_roles
 ```
 
+### Clean Build Artifacts
+```bash
+make clean
+```
+
+## Implementation Details & Assignment Fulfillment
+
+### Class Structure & Design
+- **Game:** Manages the overall game state, player list, turn order, and win condition. Handles player elimination and ensures only the current player can act.
+- **Player (Base Class):** Abstracts common player logic, coin management, and basic actions (gather, coup, etc.).
+- **Role (Base Class):** Provides a polymorphic interface for all roles, allowing easy extension and role-specific logic.
+- **Baron, General, Governor, Judge, Merchant, Spy:** Each inherits from Player and implements unique actions, blocks, and special rules as required by the assignment.
+
+### Game Logic & Turn Management
+- The game enforces strict turn order. Only the current player can act; others must wait for their turn.
+- After each action, the turn advances automatically, unless an action requires resolution (e.g., blocks, counteractions).
+- Player elimination is handled by removing the player from the active list and skipping their turns.
+
+### Role Actions & Special Abilities
+- **Baron:** Can invest coins (requires 3 coins, returns 6). Throws if not enough coins.
+- **General:** Can block a coup targeting themselves (if not already eliminated). Throws if not targeted.
+- **Governor:** Can tax for 3 coins, but cannot tax twice in a row without resolving the previous tax.
+- **Judge:** Can cancel a bribe immediately after it is performed, before the briber ends their turn. Throws if no bribe is active.
+- **Merchant:** Gets a bonus coin if starting a turn with 3 or more coins. No bonus otherwise.
+- **Spy:** Can spy on other players (not themselves) and can block arrest only if they have spied on the arresting player.
+
+### Exception Handling & Edge Cases
+- All illegal actions (acting out of turn, insufficient coins, double-taxing, self-targeting, etc.) throw exceptions with clear messages.
+- The code is robust against invalid state transitions and enforces all game rules strictly.
+
+### Testing & Validation
+- **Comprehensive Unit Tests:**
+  - `tests/test_roles.cpp` covers all unique actions, edge cases, and error conditions for each role.
+  - `tests/test_game.cpp` covers general game flow, turn order, elimination, and classic Coup logic.
+- **Automated Test Execution:** All tests can be run with `make test` or individually with `make test_roles` and `make test_game`. Tests use the doctest framework and provide clear output for failures.
+- **Test Coverage:** Tests ensure that:
+  - Only the current player can act.
+  - All role-specific actions and blocks work as intended.
+  - Illegal actions throw exceptions.
+  - Turn order and elimination are enforced.
+
+### Makefile & Project Structure
+- The Makefile provides clear targets for all main actions:
+  - `make` - Build all executables.
+  - `make make_main` - Build and run the main demo executable.
+  - `make gui` - Build and run the GUI version.
+  - `make test` - Run all tests.
+  - `make test_roles` - Run only the role-specific tests.
+  - `make test_game` - Run only the general game tests.
+  - `make clean` - Remove all build artifacts.
+  - `make valgrind` - Run valgrind on the main executable (Linux/Mac only).
+- Usage instructions are provided at the top of the Makefile and in this README.
+
+### Documentation & Code Quality
+- All classes and methods are documented in English, with clear comments explaining logic and edge cases.
+- The code is modular, extensible, and ready for further development or sharing on GitHub.
+- The user's email is included in all source and header files for attribution.
+
 ## Important Tests
 - **test_roles.cpp:**
   - Verifies all unique actions and edge cases for Baron, General, Governor, Judge, Merchant, and Spy.
@@ -59,7 +116,7 @@ make test_roles
   - Checks that illegal actions (e.g., acting out of turn, double-taxing, investing without coins) throw exceptions.
   - Validates that special blocks and counteractions work as intended.
 - **test_game.cpp:**
-  - (Not detailed here) General game flow and classic Coup logic.
+  - Covers general game flow and classic Coup logic.
 
 ## Notes
 - All tests are automated and can be run with `make test_roles` or `make test`.
