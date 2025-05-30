@@ -1,3 +1,7 @@
+// orel2744@gmail.com
+// The Governor class represents a player who gains extra coins from tax and can block other players' tax actions.
+// Has all standard actions and unique tax-related abilities.
+
 #pragma once
 #include "Player.hpp"
 
