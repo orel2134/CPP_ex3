@@ -1,3 +1,8 @@
+// orel2744@gmail.com
+// Role.hpp defines the Role enum, representing all possible player roles in the game.
+// Each role grants unique abilities and determines the player's special actions.
+// Includes a utility function for converting Role values to readable strings.
+
 #ifndef ROLE_HPP
 #define ROLE_HPP
 
