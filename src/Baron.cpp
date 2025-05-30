@@ -1,3 +1,4 @@
+// orel2744@gmail.com
 // Baron.cpp - Implementation of the Baron class (Coup role: Baron)
 #include "Baron.hpp"
 #include "Game.hpp"
@@ -70,4 +71,3 @@ void Baron::blockTax(Player& target) { throw std::logic_error("Baron cannot bloc
  * @brief Skip turn.
  */
 void Baron::skipTurn() { Player::skipTurn(); }
-//
