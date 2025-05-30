@@ -1,9 +1,22 @@
+// orel2744@gmail.com
 #pragma once
 
 #include <string>
 #include "Role.hpp"
 class Game;
 
+/**
+ * @brief The Player class represents a generic participant in the Coup game.
+ * 
+ * Responsibilities:
+ * - Serves as the base class for all specific roles (Baron, Spy, General, etc.).
+ * - Manages player state: name, role, coin count, alive status, and turn logic.
+ * - Implements core game actions: gather, tax, coup, bribe, sanction, invest, arrest, etc.
+ * - Handles turn order, extra actions (bribe), and interaction with the Game class.
+ * - Provides a common interface for all role-specific behaviors, which are overridden in derived classes.
+ * 
+ * The Player class is central to the game logic, ensuring all rules and player actions are enforced.
+ */
 class Player {
 private:
     std::string name;
