@@ -1,3 +1,4 @@
+// orel2744@gmail.com
 // Player.cpp –  include Baron, Spy, General
 
 #include "Player.hpp"
@@ -54,11 +55,13 @@ bool Player::isAlive() const { return alive; }
 void Player::bribe() {
     if (!alive) throw std::logic_error("Dead player cannot bribe.");
     if (!game->isPlayerTurn(this)) throw std::logic_error("Not your turn.");
+    if (game->getBank() < 4) throw std::logic_error("Not enough coins in the bank for bribe");
     if (coins < 4) throw std::logic_error("Not enough coins to bribe");
     if (extraAction) throw std::logic_error("Already bribed this turn");
     if (pendingAction != PendingAction::None) throw std::logic_error("You must resolve previous action (tax/bribe) before new action.");
 
     coins -= 4;
+    game->addCoinsToBank(4); // Bribe coins go to the bank
     extraAction = true;
     game->markBribe(this);
     std::cout << name << " paid 4 coins to bribe and earned an extra action.\n";
@@ -76,15 +79,18 @@ void Player::sanction(Player& target) {
     if (this == &target) throw std::logic_error("Cannot sanction yourself");
     if (!alive || !target.isAlive()) throw std::logic_error("Both players must be alive");
     if (!game->isPlayerTurn(this)) throw std::logic_error("Not your turn");
+    if (game->getBank() < 3) throw std::logic_error("Not enough coins in the bank for sanction");
     if (coins < 3) throw std::logic_error("Not enough coins to sanction");
     if (target.getRole() == Role::Judge) {
-        game->addCoinsToBank(1);
+        game->addCoinsToBank(1); // Judge gets 1 extra coin to the bank
     }
     coins -= 3;
+    game->addCoinsToBank(3); // Sanction coins go to the bank
     game->applySanction(&target);
-    std::cout << name << " sanctioned " << target.getName() << "." << std::endl;
+    std::cout << name << " sanctioned " << target.getName() << ".\n";
     endTurn();
 }
+
 
 /**
  * @brief Performs a coup on another player, eliminating them from the game. Costs 7 coins. Throws if not allowed.
@@ -96,22 +102,13 @@ void Player::coup(Player& target) {
     if (this == &target) throw std::logic_error("Cannot coup yourself");
     if (!alive || !target.isAlive()) throw std::logic_error("Both players must be alive");
     if (!game->isPlayerTurn(this)) throw std::logic_error("Not your turn");
+    if (game->getBank() < 7) throw std::logic_error("Not enough coins in the bank for coup");
     if (coins < 7) throw std::logic_error("Not enough coins to perform a coup");
-    if (pendingAction != PendingAction::None) {
-        pendingAction = PendingAction::None;
-        extraAction = false;
-    }
-    game->registerCoupAttempt(this, &target);
-    if (game->isCoupBlocked(&target)) {
-        coins -= 7;
-        std::cout << name << " tried to coup " << target.getName() << " but it was blocked! Coins lost." << std::endl;
-        game->cancelCoup(&target);
-        endTurn();
-        return;
-    }
     coins -= 7;
-    game->eliminate(&target);
-    std::cout << name << " performed a coup on " << target.getName() << "." << std::endl;
+    game->addCoinsToBank(7); // Coup coins go to the bank
+    game->registerCoupAttempt(this, &target); // Use the correct public method
+    std::cout << name << " performed a coup on " << target.getName() << ".\n";
+    game->eliminate(&target); // Ensure the target is eliminated in the game state
     endTurn();
 }
 
@@ -124,7 +121,12 @@ void Player::invest() {
     if (!game->isPlayerTurn(this)) throw std::logic_error("Not your turn");
     if (role != Role::Baron) throw std::logic_error("Only a Baron can invest");
     if (coins < 3) throw std::logic_error("Not enough coins to invest");
-    coins -= 3; coins += 6;
+    if (game->getBank() < 3) throw std::logic_error("Not enough coins in the bank to invest");
+    coins -= 3;
+    game->addCoinsToBank(3); // השקעה - 3 מטבעות לבנק
+    if (game->getBank() < 6) throw std::logic_error("Not enough coins in the bank to pay investment return");
+    coins += 6;
+    game->addCoinsToBank(-6); // קבלת 6 מטבעות מהבנק
     std::cout << name << " invested and gained 6 coins" << std::endl;
     endTurn();
 }
@@ -257,8 +259,11 @@ void Player::gather() {
         pendingAction = PendingAction::None;
         extraAction = false;
     }
-    merchantBonus(); 
+    merchantBonus();
+    // Take coin from central bank if available
+    if (game->getBank() <= 0) throw std::logic_error("Bank is empty. Cannot gather.");
     coins += 1;
+    game->addCoinsToBank(-1);
     std::cout << name << " gathered 1 coin.\n";
     endTurn();
 }
@@ -272,11 +277,12 @@ void Player::tax() {
     if (!game->isPlayerTurn(this)) throw std::logic_error("Not your turn.");
     if (game->isSanctioned(this)) throw std::logic_error("You are sanctioned and cannot tax.");
     if (pendingAction != PendingAction::None) throw std::logic_error("You must resolve previous action (tax/bribe) before new action.");
-
     merchantBonus();
     int amount = 2;
     if (role == Role::Governor) amount = 3;
+    if (game->getBank() < amount) throw std::logic_error("Bank does not have enough coins for tax.");
     coins += amount;
+    game->addCoinsToBank(-amount);
     std::cout << name << " taxed and got " << amount << " coins.\n";
     game->markTax(this);
     pendingAction = PendingAction::Tax;
@@ -308,13 +314,15 @@ void Player::arrest(Player& target) {
     if (target.getRole() == Role::Merchant) {
         if (target.getCoins() < 2) throw logic_error("Merchant doesn't have enough to pay arrest penalty.");
         target.removeCoins(2);
+        game->addCoinsToBank(2); // Merchant pays 2 coins to the bank
         cout << target.getName() << " is a Merchant and paid 2 coins to bank (arrest).\n";
         endTurn();
         return;
     }
     if (target.getCoins() > 0) {
         target.removeCoins(1);
-        addCoins(1);
+        this->addCoins(1);
+        // arrest לא משפיע על הקופה המרכזית (העברת מטבע בין שחקנים)
     }
     cout << getName() << " arrested " << target.getName() << " and took 1 coin.\n";
     endTurn();
