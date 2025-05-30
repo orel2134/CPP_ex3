@@ -16,9 +16,11 @@
  *
  * -----------------------------------------------------------------------------
  */
+// orel2744@gmail.com
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <vector>
+#include <memory>
 #include "Game.hpp"
 #include "Player.hpp"
 #include "Role.hpp"
@@ -30,11 +32,12 @@
 int main() {
     Game game;
     std::vector<Player*> players;
-    players.push_back(new Governor("Orel", &game));
-    players.push_back(new Spy("Avi", &game));
-    players.push_back(new General("Alon", &game));
-    players.push_back(new Merchant("Shachar", &game));
-    players.push_back(new Merchant("Avicii", &game));
+    std::vector<std::string> names = {"Orel", "Avi", "Alon", "Shachar", "Avicii"};
+    for (const auto& name : names) {
+        Role role = Game::getRandomRole();
+        players.push_back(Game::createPlayerWithRole(name, &game, role));
+        std::cout << name << " assigned role: " << roleToString(role) << std::endl;
+    }
 
     sf::RenderWindow window(sf::VideoMode(1100, 650), "Coup Game - GUI");
     sf::Font font;
@@ -151,11 +154,12 @@ int main() {
                         for (Player* p : players) delete p;
                         players.clear();
                         game = Game();
-                        players.push_back(new Governor("Orel", &game));
-                        players.push_back(new Spy("Avi", &game));
-                        players.push_back(new General("Alon", &game));
-                        players.push_back(new Merchant("Shachar", &game));
-                        players.push_back(new Merchant("Avicii", &game));
+                        std::vector<std::string> names = {"Orel", "Avi", "Alon", "Shachar", "Avicii"};
+                        for (const auto& name : names) {
+                            Role role = Game::getRandomRole();
+                            players.push_back(Game::createPlayerWithRole(name, &game, role));
+                            std::cout << name << " assigned role: " << roleToString(role) << std::endl;
+                        }
                         winnerName = "";
                         gameOver = false;
                         mustCoup = false;
