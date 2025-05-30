@@ -1,123 +1,136 @@
-# Makefile
-#
-# Usage instructions:
-#
-# 1. Open a terminal and navigate to the project directory:
-#    cd CPP_ex3
-#
-# 2. To build all executables (main, GUI, and both test suites):
-#    make
-#
-# 3. To run the main test suite (test_game):
-#    make test_game
-#
-# 4. To run the roles test suite (test_roles):
-#    make test_roles
-#
-# 5. To run all tests (both test_game and test_roles, sequentially):
-#    make test
-#
-# 6. To run the GUI version (build and run in one step):
-#    make gui
-#
-# 7. To run the main demo executable:
-#    make make_main
-#
-# 8. To clean all build artifacts:
-#    make clean
-#
-# Note: All tests use the doctest framework.
-#
-# -----------------------------------------------------------------------------
-# Executable and directory definitions
+# Coup Game - C++ Implementation
 
-SRC_DIR := src
-INC_DIR := include
-ASSETS_DIR := assets
-TESTS_DIR := tests
-BUILD_DIR := build
+## Assignment-Specific Features (2025 Version)
+This implementation fully matches the advanced assignment requirements:
 
-SRCS := $(wildcard $(SRC_DIR)/*.cpp)
-HDRS := $(wildcard $(INC_DIR)/*.hpp)
+- **Random Role Assignment:** At game start, each player is assigned a random role (Governor, Spy, Baron, General, Judge, Merchant). Duplicates are allowed.
+- **Central Coin Bank (kupa):** All coins are drawn from and paid to a central bank. The bank starts with 50 coins by default. Player actions update both their own coin count and the bank.
+- **Universal Actions:** All players can perform any base action (gather, tax, bribe, arrest, sanction, coup), with role-specific effects and blocks.
+- **Strict Rule Enforcement:** All illegal actions (e.g., acting out of turn, insufficient coins, illegal blocks) throw clear exceptions.
+- **Player Elimination:** Eliminated players are fully removed from the game and cannot block or act further.
+- **Game End:** The last remaining player is declared the winner.
 
-MAIN_SRC := $(SRC_DIR)/main.cpp
-GUI_SRC := $(SRC_DIR)/main_gui.cpp
+## Game Logic Overview
+This project implements an advanced version of the classic game "Coup" in C++. The game is played by 2 or more players, each with a secret role and unique abilities. The main goal is to eliminate all other players and be the last one standing.
 
-TEST_SRC := $(TESTS_DIR)/test_game.cpp
-TEST_ROLES_SRC := $(TESTS_DIR)/test_roles.cpp
+### Key Concepts
+- **Turn-based:** Players act in a fixed order. Only the current player can perform actions.
+- **Coins:** Players collect coins to perform powerful actions (like coup).
+- **Roles:** Each player is assigned a role (Baron, General, Governor, Judge, Merchant, Spy), each with unique actions and blocks.
+- **Actions:** Players can gather coins, perform special actions, block others, or launch a coup to eliminate a rival.
+- **Blocking & Counteractions:** Some roles can block or counter specific actions of others.
+- **Elimination:** When a player is couped, they are removed from the game and skip their turns.
 
-MAIN_EXE := $(BUILD_DIR)/main.exe
-GUI_EXE := $(BUILD_DIR)/game_gui.exe
-TEST_EXE := $(BUILD_DIR)/test_game.exe
-TEST_ROLES_EXE := $(BUILD_DIR)/test_roles.exe
+### New Roles (Beyond Classic Coup)
+- **Baron:** Can invest coins for a big return.
+- **General:** Can block coups against themselves.
+- **Governor:** Can tax for extra coins, but not twice in a row without resolving the previous action.
+- **Judge:** Can cancel a bribe if done immediately after the bribe action.
+- **Merchant:** Gets a bonus coin if starting a turn with 3+ coins.
+- **Spy:** Can spy on others and interact with arrest mechanics.
 
-CXX := g++
-CXXFLAGS := -std=c++17 -I$(INC_DIR) -I$(TESTS_DIR) -Wall -Wextra -g
-LDFLAGS := -lsfml-graphics -lsfml-window -lsfml-system
+## Building and Running
 
-# Source files excluding main.cpp and main_gui.cpp
-SRCS_NO_MAIN := $(filter-out $(SRC_DIR)/main.cpp $(SRC_DIR)/main_gui.cpp, $(SRCS))
+### Requirements
+- C++17 compiler (e.g., g++)
+- [doctest](https://github.com/doctest/doctest) (included in `tests/doctest.h`)
+- (Optional) SFML for GUI
 
-all: $(MAIN_EXE) $(GUI_EXE)
+### Build All
+```bash
+make
+```
 
-# Build main.exe with main.cpp only
-$(MAIN_EXE): $(SRCS_NO_MAIN) $(SRC_DIR)/main.cpp
-	$(CXX) $(CXXFLAGS) $^ -o $@
+### Run Main Game (Console)
+```bash
+make make_main
+```
 
-# Build game_gui.exe with main_gui.cpp only
-$(GUI_EXE): $(SRCS_NO_MAIN) $(SRC_DIR)/main_gui.cpp
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+### Run GUI Version
+```bash
+make gui
+```
 
-# Build test_game.exe
-$(TEST_EXE): $(SRCS_NO_MAIN) $(TEST_SRC)
-	$(CXX) $(CXXFLAGS) $^ -o $@
+### Run All Tests
+```bash
+make test
+```
 
-# Build test_roles.exe
-$(TEST_ROLES_EXE): $(SRCS_NO_MAIN) $(TEST_ROLES_SRC)
-	$(CXX) $(CXXFLAGS) $^ -o $@
+### Run Role-Specific Tests
+```bash
+make test_roles
+```
 
-# Run only test_game
-.PHONY: test_game
+### Clean Build Artifacts
+```bash
+make clean
+```
 
-test_game: $(TEST_EXE)
-	@if command -v winpty >/dev/null 2>&1; then winpty $(TEST_EXE); \
-	elif [ -f $(TEST_EXE) ]; then $(TEST_EXE); \
-	else ./test_game.exe; fi
+## Implementation Details & Assignment Fulfillment
 
-# Run only test_roles
-.PHONY: test_roles
+### Class Structure & Design
+- **Game:** Manages the overall game state, player list, turn order, and win condition. Handles player elimination and ensures only the current player can act.
+- **Player (Base Class):** Abstracts common player logic, coin management, and basic actions (gather, coup, etc.).
+- **Role (Base Class):** Provides a polymorphic interface for all roles, allowing easy extension and role-specific logic.
+- **Baron, General, Governor, Judge, Merchant, Spy:** Each inherits from Player and implements unique actions, blocks, and special rules as required by the assignment.
 
-test_roles: $(TEST_ROLES_EXE)
-	@if command -v winpty >/dev/null 2>&1; then winpty $(TEST_ROLES_EXE); \
-	elif [ -f $(TEST_ROLES_EXE) ]; then $(TEST_ROLES_EXE); \
-	else ./test_roles.exe; fi
+### Game Logic & Turn Management
+- The game enforces strict turn order. Only the current player can act; others must wait for their turn.
+- After each action, the turn advances automatically, unless an action requires resolution (e.g., blocks, counteractions).
+- Player elimination is handled by removing the player from the active list and skipping their turns.
 
-# Run both test suites sequentially
-.PHONY: test
+### Role Actions & Special Abilities
+- **Baron:** Can invest coins (requires 3 coins, returns 6). Throws if not enough coins.
+- **General:** Can block a coup targeting themselves (if not already eliminated). Throws if not targeted.
+- **Governor:** Can tax for 3 coins, but cannot tax twice in a row without resolving the previous tax.
+- **Judge:** Can cancel a bribe immediately after it is performed, before the briber ends their turn. Throws if no bribe is active.
+- **Merchant:** Gets a bonus coin if starting a turn with 3 or more coins. No bonus otherwise.
+- **Spy:** Can spy on other players (not themselves) and can block arrest only if they have spied on the arresting player.
 
-test: test_game test_roles
+### Exception Handling & Edge Cases
+- All illegal actions (acting out of turn, insufficient coins, double-taxing, self-targeting, etc.) throw exceptions with clear messages.
+- The code is robust against invalid state transitions and enforces all game rules strictly.
 
-# Build and run the GUI version in one step
-.PHONY: gui
+### Testing & Validation
+- **Comprehensive Unit Tests:**
+  - `tests/test_roles.cpp` covers all unique actions, edge cases, and error conditions for each role.
+  - `tests/test_game.cpp` covers general game flow, turn order, elimination, and classic Coup logic.
+- **Automated Test Execution:** All tests can be run with `make test` or individually with `make test_roles` and `make test_game`. Tests use the doctest framework and provide clear output for failures.
+- **Test Coverage:** Tests ensure that:
+  - Only the current player can act.
+  - All role-specific actions and blocks work as intended.
+  - Illegal actions throw exceptions.
+  - Turn order and elimination are enforced.
 
-gui: $(GUI_EXE)
-	./$(GUI_EXE)
+### Makefile & Project Structure
+- The Makefile provides clear targets for all main actions:
+  - `make` - Build all executables.
+  - `make make_main` - Build and run the main demo executable.
+  - `make gui` - Build and run the GUI version.
+  - `make test` - Run all tests.
+  - `make test_roles` - Run only the role-specific tests.
+  - `make test_game` - Run only the general game tests.
+  - `make clean` - Remove all build artifacts.
+  - `make valgrind` - Run valgrind on the main executable (Linux/Mac only).
+- Usage instructions are provided at the top of the Makefile and in this README.
 
-# Run the main demo executable
-.PHONY: make_main
+### Documentation & Code Quality
+- All classes and methods are documented in English, with clear comments explaining logic and edge cases.
+- The code is modular, extensible, and ready for further development or sharing on GitHub.
+- The user's email is included in all source and header files for attribution.
 
-make_main: $(MAIN_EXE)
-	@if command -v winpty >/dev/null 2>&1; then winpty $(MAIN_EXE); \
-	elif [ -f $(MAIN_EXE) ]; then $(MAIN_EXE); \
-	else ./main.exe; fi
+## Important Tests
+- **test_roles.cpp:**
+  - Verifies all unique actions and edge cases for Baron, General, Governor, Judge, Merchant, and Spy.
+  - Ensures correct turn order, action legality, and exception handling.
+  - Checks that illegal actions (e.g., acting out of turn, double-taxing, investing without coins) throw exceptions.
+  - Validates that special blocks and counteractions work as intended.
+- **test_game.cpp:**
+  - Covers general game flow and classic Coup logic.
 
-# Run valgrind on the main executable (Linux/Mac only)
-.PHONY: valgrind
+## Notes
+- All tests are automated and can be run with `make test_roles` or `make test`.
+- The project is modular and easy to extend with new roles or actions.
+- For any logic or test failures, check the test output for clear error messages.
 
-valgrind: $(MAIN_EXE)
-	valgrind --leak-check=full $(MAIN_EXE)
-
-clean:
-	rm -f $(BUILD_DIR)/*.exe
-
-.PHONY: all test clean
+Enjoy playing and extending Coup!
