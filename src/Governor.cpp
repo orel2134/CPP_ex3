@@ -1,3 +1,4 @@
+// orel2744@gmail.com
 // Governor.cpp - Implementation of the Governor class (Coup role: Governor)
 #include <stdexcept>
 #include "Governor.hpp"
@@ -37,4 +38,3 @@ void Governor::generalBlockCoup(Player& attacker) { throw std::logic_error("Gove
 void Governor::blockTax(Player& target) { Player::blockTax(target); }
 // Skip turn
 void Governor::skipTurn() { Player::skipTurn(); }
-//
