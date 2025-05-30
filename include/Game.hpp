@@ -1,11 +1,19 @@
+// orel2744@gmail.com
+// Game.hpp defines the Game class, which manages the state, rules, and flow of a Coup game session.
+// Tracks players, turn order, and all game mechanics (sanctions, bribes, coups, arrests, etc.).
+// Provides the main interface for player actions and enforces all game rules.
+
 #pragma once
 
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <random>
+#include <memory>
+#include "Role.hpp"
 
 class Player;
-
+//
 /**
  * @class Game
  * @brief Manages the state and rules of a Coup game session.
@@ -170,6 +178,12 @@ public:
     void addCoinsToBank(int amount);
 
     /**
+     * @brief Returns the current number of coins in the bank.
+     * @return The bank's coin count.
+     */
+    int getBank() const { return bank; }
+
+    /**
      * @brief Marks a player as having been targeted by a coup.
      * @param target Pointer to the player.
      */
@@ -221,6 +235,21 @@ public:
      * @return True if the arrest occurred last turn, false otherwise.
      */
     bool wasArrestedByMeLastTurn(Player* source, Player* target) const;
+
+    /**
+     * @brief Returns a random Role from the available roles (Governor, Spy, Baron, General, Judge, Merchant).
+     * @return A randomly selected Role.
+     */
+    static Role getRandomRole();
+
+    /**
+     * @brief Factory function to create a player of the correct derived type for a given role.
+     * @param name The player's name.
+     * @param game Pointer to the game instance.
+     * @param role The role to assign.
+     * @return Pointer to the created Player (caller owns).
+     */
+    static Player* createPlayerWithRole(const std::string& name, Game* game, Role role);
 
     // Rule of Three
     Game();
